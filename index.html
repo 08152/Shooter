@@ -2,115 +2,88 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>FPS DEBUG MODE</title>
+<title>WEBGL DIAGNOSE</title>
 
 <style>
-body { margin:0; overflow:hidden; background:black; }
-#info{
-  position:absolute;
-  top:10px;
-  width:100%;
-  text-align:center;
-  color:white;
-  font-family:Arial;
-  z-index:10;
-}
-#crosshair{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  color:white;
-  font-size:20px;
-  z-index:10;
-}
+body { margin:0; background:black; color:white; font-family:Arial; }
+#info{ padding:10px; }
 </style>
 </head>
 <body>
 
-<div id="info">HTML OK</div>
-<div id="crosshair">+</div>
+<div id="info">CHECKING...</div>
 
 <script>
-console.log("STEP 1: JS STARTED");
-document.getElementById("info").innerText = "JS OK";
+
+// =====================
+// STEP 1
+// =====================
+document.getElementById("info").innerText = "STEP 1: JS OK";
+
+// =====================
+// STEP 2: WEBGL CHECK
+// =====================
+const canvas = document.createElement("canvas");
+
+let gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+
+if(!gl){
+  document.getElementById("info").innerText =
+    "❌ WEBGL BLOCKED - YOUR DEVICE CANNOT RUN 3D";
+  throw new Error("WebGL not supported");
+}
+
+document.getElementById("info").innerText = "✅ WEBGL OK";
+
+// =====================
+// STEP 3: TRY THREE
+// =====================
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
 
 <script>
-console.log("STEP 2: THREE LOADED");
-
-// ===== CHECK THREE =====
 if(!window.THREE){
-  document.getElementById("info").innerText = "THREE FAILED";
-  throw new Error("Three.js not loaded");
+  document.getElementById("info").innerText = "❌ THREE FAILED";
+  throw new Error("Three failed");
 }
 
-document.getElementById("info").innerText = "THREE OK";
+document.getElementById("info").innerText = "✅ THREE LOADED";
 
 // =====================
-// SCENE
+// STEP 4: REAL RENDER TEST
 // =====================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 
-document.getElementById("info").innerText = "SCENE CREATED";
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+camera.position.z = 5;
 
-// CAMERA
-const camera = new THREE.PerspectiveCamera(
-  75,
-  innerWidth/innerHeight,
-  0.1,
-  1000
-);
-camera.position.set(0,2,5);
+const renderer = new THREE.WebGLRenderer();
 
-// RENDERER
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
-document.body.appendChild(renderer.domElement);
-
-console.log("STEP 3: RENDERER CREATED");
-document.getElementById("info").innerText = "RENDERER OK";
-
-// LIGHT
-scene.add(new THREE.AmbientLight(0xffffff, 1));
-
-// FLOOR
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(100,100),
-  new THREE.MeshStandardMaterial({color:0x2ecc71})
-);
-floor.rotation.x = -Math.PI/2;
-scene.add(floor);
-
-// DEBUG CUBE (MUSS SICHER SEIN!)
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1,1,1),
-  new THREE.MeshStandardMaterial({color:0xff0000})
-);
-cube.position.y = 1;
-scene.add(cube);
-
-console.log("STEP 4: SCENE READY");
-document.getElementById("info").innerText = "RENDERING...";
-
-// =====================
-// LOOP
-// =====================
-function animate(){
-  requestAnimationFrame(animate);
-
-  cube.rotation.y += 0.01;
-
-  renderer.render(scene,camera);
+try {
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+} catch(e){
+  document.getElementById("info").innerText = "❌ RENDERER FAILED";
+  throw e;
 }
 
+// CUBE TEST
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(1,1,1),
+  new THREE.MeshBasicMaterial({color:0xff0000})
+);
+scene.add(cube);
+
+function animate(){
+  requestAnimationFrame(animate);
+  cube.rotation.y += 0.02;
+  renderer.render(scene,camera);
+}
 animate();
 
-console.log("STEP 5: LOOP RUNNING");
-document.getElementById("info").innerText = "ALL SYSTEMS GO";
+document.getElementById("info").innerText = "🎮 3D WORKING";
 
 </script>
 
