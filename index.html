@@ -2,10 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>FPS GLB Shooter Fixed</title>
+<title>FPS DEBUG MODE</title>
 
 <style>
-body { margin:0; overflow:hidden; background:#000; }
+body { margin:0; overflow:hidden; background:black; }
 #info{
   position:absolute;
   top:10px;
@@ -13,6 +13,7 @@ body { margin:0; overflow:hidden; background:#000; }
   text-align:center;
   color:white;
   font-family:Arial;
+  z-index:10;
 }
 #crosshair{
   position:absolute;
@@ -20,44 +21,61 @@ body { margin:0; overflow:hidden; background:#000; }
   top:50%;
   transform:translate(-50%,-50%);
   color:white;
-  font-size:18px;
-  pointer-events:none;
+  font-size:20px;
+  z-index:10;
 }
 </style>
 </head>
 <body>
 
-<div id="info">Loading...</div>
+<div id="info">HTML OK</div>
 <div id="crosshair">+</div>
 
+<script>
+console.log("STEP 1: JS STARTED");
+document.getElementById("info").innerText = "JS OK";
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
+console.log("STEP 2: THREE LOADED");
+
+// ===== CHECK THREE =====
+if(!window.THREE){
+  document.getElementById("info").innerText = "THREE FAILED";
+  throw new Error("Three.js not loaded");
+}
+
+document.getElementById("info").innerText = "THREE OK";
 
 // =====================
-// BASIC SETUP
+// SCENE
 // =====================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 
+document.getElementById("info").innerText = "SCENE CREATED";
+
+// CAMERA
 const camera = new THREE.PerspectiveCamera(
   75,
-  innerWidth / innerHeight,
+  innerWidth/innerHeight,
   0.1,
   1000
 );
-camera.position.set(0, 1.6, 5);
+camera.position.set(0,2,5);
 
+// RENDERER
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
+console.log("STEP 3: RENDERER CREATED");
+document.getElementById("info").innerText = "RENDERER OK";
+
 // LIGHT
 scene.add(new THREE.AmbientLight(0xffffff, 1));
-const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-dirLight.position.set(5,10,5);
-scene.add(dirLight);
 
 // FLOOR
 const floor = new THREE.Mesh(
@@ -67,90 +85,16 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI/2;
 scene.add(floor);
 
-// DEBUG (zeigt sofort ob Engine läuft)
-const testCube = new THREE.Mesh(
+// DEBUG CUBE (MUSS SICHER SEIN!)
+const cube = new THREE.Mesh(
   new THREE.BoxGeometry(1,1,1),
   new THREE.MeshStandardMaterial({color:0xff0000})
 );
-testCube.position.y = 1;
-scene.add(testCube);
+cube.position.y = 1;
+scene.add(cube);
 
-// =====================
-// GLB LOADER (STABLE)
-// =====================
-const loader = new THREE.GLTFLoader();
-
-function loadGLB(path, name){
-
-  document.getElementById("info").innerText = "Loading " + name;
-
-  loader.load(
-
-    path,
-
-    (gltf)=>{
-
-      const obj = gltf.scene;
-
-      // 🔥 REALISTIC FPS SCALE (NICHT RIESIG!)
-      obj.scale.set(1,1,1);
-
-      // 🔥 POSITION = in Hand (rechts unten)
-      obj.position.set(0.4, -0.3, -0.7);
-
-      // 🔥 SLIGHT FIX FOR VISIBILITY
-      obj.traverse(c=>{
-        if(c.isMesh){
-          c.material.side = THREE.DoubleSide;
-          c.material.needsUpdate = true;
-        }
-      });
-
-      camera.add(obj);
-      scene.add(camera);
-
-      console.log("LOADED:", name);
-
-      document.getElementById("info").innerText = "READY";
-    },
-
-    undefined,
-
-    (err)=>{
-      console.error(err);
-      document.getElementById("info").innerText = "ERROR loading " + name;
-    }
-  );
-}
-
-// =====================
-// LOAD YOUR MODELS
-// =====================
-loadGLB("pistol.glb", "pistol");
-
-// Slide (Animation-Teil später wichtig)
-loadGLB("pistol_schacht.glb", "slide");
-
-// =====================
-// SIMPLE FPS CONTROL (LOOK ONLY)
-// =====================
-let yaw = 0;
-let pitch = 0;
-
-document.addEventListener("click",()=>{
-  document.body.requestPointerLock();
-});
-
-document.addEventListener("mousemove",(e)=>{
-  if(document.pointerLockElement !== document.body) return;
-
-  yaw -= e.movementX * 0.002;
-  pitch -= e.movementY * 0.002;
-
-  pitch = Math.max(-1.5, Math.min(1.5, pitch));
-
-  camera.rotation.set(pitch, yaw, 0);
-});
+console.log("STEP 4: SCENE READY");
+document.getElementById("info").innerText = "RENDERING...";
 
 // =====================
 // LOOP
@@ -158,14 +102,15 @@ document.addEventListener("mousemove",(e)=>{
 function animate(){
   requestAnimationFrame(animate);
 
-  testCube.rotation.y += 0.01;
+  cube.rotation.y += 0.01;
 
   renderer.render(scene,camera);
 }
 
 animate();
 
-document.getElementById("info").innerText = "RUNNING";
+console.log("STEP 5: LOOP RUNNING");
+document.getElementById("info").innerText = "ALL SYSTEMS GO";
 
 </script>
 
